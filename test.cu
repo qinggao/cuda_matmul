@@ -1,19 +1,67 @@
 
-#define N 30
-__global__ void MatAdd(float A[N][N], float B[N][N], float C[N][N])
+#include <stdio.h>
+
+#define N 5
+__global__ void MatAdd(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
   int i = threadIdx.x;
   int j = threadIdx.y;
-  C[i][j] = A[i][j] + B[i][j];
+  d_C[i][j] = d_A[i][j] + d_B[i][j];
 }
+
+__global__ void setElement(float d_A[N][N], float d_B[N][N], float d_C[N][N])
+{
+	int i = threadIdx.x;
+	int j = threadIdx.y;
+	d_A[i][j] = i * 3.2 + j * 2.21;
+	d_B[i][j] = i * 1.3 + j * 3.1;
+
+}
+
+
 int main()
 {
-	float A[N][N], B[N][N], C[N][N];
+  int ARRAY_SIZE = N * N;
+
+  int ARRAY_BYTES = ARRAY_SIZE * sizeof(float);
+
+/*  int h_l,h_m,h_n,h_k;
+  int d_l,d_m,d_n,d_k;
+*/
+/*  h_m = atoi((const char *)argv[1]);
+  h_n = atoi((const char *)argv[2]);
+  h_k = atoi((const char *)argv[3]);*/
+
+	//float h_C[N][N];
+
+  float h_A[N][N];
+  float **d_A, **d_B, **d_C;
+
+  cudaMalloc((void**) &d_A, ARRAY_BYTES);
+  cudaMalloc((void**) &d_B, ARRAY_BYTES);
+  cudaMalloc((void**) &d_C, ARRAY_BYTES);
+  
   // Kernel invocation with one block of N * N * 1 threads
   int numBlocks = 1;
   dim3 threadsPerBlock(N, N);
-  MatAdd<<<numBlocks, threadsPerBlock>>>(A, B, C);
+  setElement<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
+
+  cudaMemcpy(h_A, d_A, ARRAY_BYTES, cudaMemcpyDeviceToHost);
+  
+/*  for (int i=0; i < N; i++)
+  {
+	for (int j=0; j < N; j++)
+	{
+		printf("%f", h_A[i][j]);
+		printf("%f", h_B[i][j]);
+	}
+  
+  
+  }*/
+  
+  
+  MatAdd<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
 
 }
 
-//nvcc -o test test.cu
+//nvcc -o test test.cu 
