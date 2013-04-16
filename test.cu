@@ -5,21 +5,23 @@
 #include <time.h>
 #include <sys/resource.h>
 
-#define N 5
-__global__ void MatAdd(float d_A[N][N], float d_B[N][N], float d_C[N][N])
+#define N 50
+__global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
   int i = threadIdx.x;
   int j = threadIdx.y;
-  for(j=0;j<n;j++) {
-    for(l=0;l<k;l++) {
-      for(i=0;i<m;i++) {
-        C[i][j] = C[i][j] + B[l][j]*A[i][l];
+  int l;
+  for(j=0;j<N;j++) {
+    for(l=0;l<N;l++) {
+      for(i=0;i<N;i++) {
+        d_C[i][j] = d_C[i][j] + d_B[l][j]*d_A[i][l];
       }
     }
   }
-  if (i < N && j < N){
+  
+  /*if (i < N && j < N){
     d_C[i][j] = d_A[i][j] + d_B[i][j];
-  }
+  }*/
   
 }
 
@@ -39,7 +41,7 @@ __global__ void setElement(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 int main()
 {
 
-  int l,m,n,k;
+  int m,n,k;
   m = n = k = N;
 
   int i,j;
@@ -98,7 +100,7 @@ int main()
 
 
   
-  MatAdd<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
+  MatMul<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
 
   cudaMemcpy(h_C, d_C, ARRAY_BYTES, cudaMemcpyDeviceToHost);
     fprintf(stdout, "Here is the matrix C:\n\n");
