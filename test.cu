@@ -5,11 +5,11 @@
 #include <time.h>
 #include <sys/resource.h>
 
-#define N 50
+#define N 10
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
-  int i = threadIdx.x;
-  int j = threadIdx.y;
+  int i = threadIdx.x + blockIdx.x * blockDim.x;    //not working
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
   int l;
   for(j=0;j<N;j++) {
     for(l=0;l<N;l++) {
@@ -31,9 +31,9 @@ __global__ void setElement(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
   if (i < N && j < N){
-  	d_A[i][j] = i * 3.2 + j * 2.21;
-  	d_B[i][j] = i * 1.3 + j * 3.1;
-    d_C[i][j] = 0;
+  	d_A[i][j] = i * (float)3.2 + j * (float)2.21;
+  	d_B[i][j] = i * (float)1.3 + j * (float)3.1;
+    d_C[i][j] = (float)0;
   }
 }
 
@@ -66,7 +66,7 @@ int main()
   cudaMalloc((void**) &d_C, ARRAY_BYTES);
   
   // Kernel invocation with one block of N * N * 1 threads
-  int numBlocks = 1;
+  int numBlocks = 5;
   dim3 threadsPerBlock(N, N);
   setElement<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
 
@@ -118,6 +118,14 @@ int main()
     printf("%f\n", h_C[i][j]);
   }
   }*/
+
+  // Clean up memory
+  /*free(h_A);
+  free(h_B);
+  free(h_C);*/
+  cudaFree(d_A);
+  cudaFree(d_B);
+  cudaFree(d_C);
 
 
 }
