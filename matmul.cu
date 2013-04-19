@@ -5,7 +5,7 @@
 #include <time.h>
 #include <sys/resource.h>
 
-#define N 10
+#define N 50
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x;   
@@ -15,8 +15,8 @@ __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
   {
     for (int l = 0; l < N; l++)
     {
-      d_C[i][j] = d_C[i][j] + d_A[j][l] * d_B[l][i];
-    
+      //d_C[i][j] = d_C[i][j] + d_A[j][l] * d_B[l][i];
+      d_C[i][j] = d_C[i][j] + d_A[i][l] * d_B[l][j];
     }
   }
 }
@@ -52,9 +52,14 @@ int main()
   cudaMalloc((void**) &d_B, ARRAY_BYTES);
   cudaMalloc((void**) &d_C, ARRAY_BYTES);
   
-  // Kernel invocation with one block of N * N * 1 threads
-  int numBlocks = 5;
-  dim3 threadsPerBlock(N, N);
+  // Kernel invocation with least amount of blocks of 512 threads
+  int numBlocks;
+  int temp;
+
+   temp = int(N * N / 512 + 1); 
+   numBlocks = temp * temp;
+  
+  dim3 threadsPerBlock(22, 22);
   setElement<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
 
   cudaMemcpy(h_A, d_A, ARRAY_BYTES, cudaMemcpyDeviceToHost);
