@@ -5,22 +5,20 @@
 #include <time.h>
 #include <sys/resource.h>
 
-#define N 3
+#define N 10
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x;   
   int j = threadIdx.y + blockIdx.y * blockDim.y;
   
-  for (int l = 0; l < N; l++)
+  if (i < N && j < N)
   {
-    d_C[i][j] = d_C[i][j] + d_A[l][j] * d_B[i][l];
-  
+    for (int l = 0; l < N; l++)
+    {
+      d_C[i][j] = d_C[i][j] + d_A[j][l] * d_B[l][i];
+    
+    }
   }
-  
-  /*if (i < N && j < N){
-    d_C[i][j] = d_A[i][j] + d_B[i][j];
-  }*/
-  
 }
 
 __global__ void setElement(float d_A[N][N], float d_B[N][N], float d_C[N][N])
@@ -35,7 +33,6 @@ __global__ void setElement(float d_A[N][N], float d_B[N][N], float d_C[N][N])
   }
 }
 
-
 int main()
 {
 
@@ -47,14 +44,6 @@ int main()
 
   int ARRAY_BYTES = ARRAY_SIZE * sizeof(float);
 
-/*  int h_l,h_m,h_n,h_k;
-  int d_l,d_m,d_n,d_k;
-*/
-/*  h_m = atoi((const char *)argv[1]);
-  h_n = atoi((const char *)argv[2]);
-  h_k = atoi((const char *)argv[3]);*/
-
-	//float h_C[N][N];
 
   float h_A[N][N], h_B[N][N], h_C[N][N];
   float (*d_A)[N], (*d_B)[N], (*d_C)[N];
@@ -72,14 +61,6 @@ int main()
   cudaMemcpy(h_B, d_B, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_C, d_C, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   
-/*  for (int i=0; i < N; i++)
-  {
-	for (int j=0; j < N; j++)
-	{
-		printf("%f", h_A[i][j]);
-		printf("  %f\n", h_B[i][j]);
-	}
-  }*/
   
     fprintf(stdout, "Here is the matrix A:\n\n");
   for(i=0;i<m;i++) {
@@ -96,17 +77,6 @@ int main()
     fprintf(stdout, "\n");
   }
 
-  fprintf(stdout, "Here is the matrix B:\n\n");
-  for(i=0;i<k;i++) {
-    for(j=0;j<n;j++) {
-      fprintf(stdout, "%10.2f",h_C[i][j]);
-    }
-    fprintf(stdout, "\n");
-  }
-
-
-
-
   
   MatMul<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
 
@@ -121,13 +91,6 @@ int main()
     fprintf(stdout, "\n");
   }
 
-/*  for (int i=0; i < N; i++)
-  {
-  for (int j=0; j < N; j++)
-  {
-    printf("%f\n", h_C[i][j]);
-  }
-  }*/
 
   // Clean up memory
   cudaFreeHost(h_A);
