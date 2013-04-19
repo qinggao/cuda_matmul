@@ -5,7 +5,7 @@
 #include <time.h>
 #include <sys/resource.h>
 
-#define N 50
+#define N 23
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x;   
@@ -70,7 +70,7 @@ int main()
     fprintf(stdout, "Here is the matrix A:\n\n");
   for(i=0;i<m;i++) {
     for(j=0;j<k;j++) {
-      fprintf(stdout, "%10.2f ",h_A[i][j]);
+      fprintf(stdout, "%10.2f",h_A[i][j]);
     }
     fprintf(stdout, "\n");
   }
