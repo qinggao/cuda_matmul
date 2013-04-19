@@ -5,18 +5,16 @@
 #include <time.h>
 #include <sys/resource.h>
 
-#define N 10
+#define N 3
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
-  int i = threadIdx.x + blockIdx.x * blockDim.x;    //not working
+  int i = threadIdx.x + blockIdx.x * blockDim.x;   
   int j = threadIdx.y + blockIdx.y * blockDim.y;
-  int l;
-  for(j=0;j<N;j++) {
-    for(l=0;l<N;l++) {
-      for(i=0;i<N;i++) {
-        d_C[i][j] = d_C[i][j] + d_B[l][j]*d_A[i][l];
-      }
-    }
+  
+  for (int l = 0; l < N; l++)
+  {
+    d_C[i][j] = d_C[i][j] + d_A[l][j] * d_B[i][l];
+  
   }
   
   /*if (i < N && j < N){
@@ -72,6 +70,7 @@ int main()
 
   cudaMemcpy(h_A, d_A, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_B, d_B, ARRAY_BYTES, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_C, d_C, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   
 /*  for (int i=0; i < N; i++)
   {
@@ -97,12 +96,23 @@ int main()
     fprintf(stdout, "\n");
   }
 
+  fprintf(stdout, "Here is the matrix B:\n\n");
+  for(i=0;i<k;i++) {
+    for(j=0;j<n;j++) {
+      fprintf(stdout, "%10.2f",h_C[i][j]);
+    }
+    fprintf(stdout, "\n");
+  }
+
+
 
 
   
   MatMul<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
 
   cudaMemcpy(h_C, d_C, ARRAY_BYTES, cudaMemcpyDeviceToHost);
+
+
     fprintf(stdout, "Here is the matrix C:\n\n");
   for(i=0;i<m;i++) {
     for(j=0;j<n;j++) {
@@ -120,9 +130,9 @@ int main()
   }*/
 
   // Clean up memory
-  /*free(h_A);
-  free(h_B);
-  free(h_C);*/
+  cudaFreeHost(h_A);
+  //free(h_B);
+  cudaFreeHost(h_C);
   cudaFree(d_A);
   cudaFree(d_B);
   cudaFree(d_C);
