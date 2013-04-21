@@ -52,12 +52,12 @@ int main()
   cudaMalloc((void**) &d_B, ARRAY_BYTES);
   cudaMalloc((void**) &d_C, ARRAY_BYTES);
   
-  // Kernel invocation with least amount of blocks of 512 threads
+  // Kernel invocation with least amount of blocks
   int numBlocks;
   int temp;
 
    temp = int(N * N / 512 + 1); 
-   numBlocks = temp * temp;
+   numBlocks = 2;
   
   dim3 threadsPerBlock(22, 22);
   setElement<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
@@ -99,7 +99,7 @@ int main()
 
   // Clean up memory
   cudaFreeHost(h_A);
-  //free(h_B);
+  cudaFreeHost(h_B);
   cudaFreeHost(h_C);
   cudaFree(d_A);
   cudaFree(d_B);
@@ -107,5 +107,3 @@ int main()
 
 
 }
-
-//nvcc -o test test.cu 
