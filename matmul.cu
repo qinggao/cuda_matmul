@@ -3,9 +3,9 @@
 #include <math.h>
 #include <assert.h>
 #include <time.h>
-#include <sys/resource.h>
+//#include <sys/resource.h>
 
-#define N 23
+#define N 50
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x;   
@@ -53,11 +53,11 @@ int main()
   cudaMalloc((void**) &d_C, ARRAY_BYTES);
   
   // Kernel invocation with least amount of blocks
-  int numBlocks;
-  int temp;
+  //int numBlocks;
+  int block_x = ceil((float)N / (float)22);
+  int block_y = ceil((float)N / (float)22);
 
-   temp = int(N * N / 512 + 1); 
-   numBlocks = 2;
+  dim3 numBlocks(block_x, block_y);
   
   dim3 threadsPerBlock(22, 22);
   setElement<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
