@@ -3,7 +3,7 @@
 #include <math.h>
 #include <assert.h>
 #include <time.h>
-//#include <sys/resource.h>
+#include "gputimer.h"
 
 #define N 50
 __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
@@ -15,7 +15,6 @@ __global__ void MatMul(float d_A[N][N], float d_B[N][N], float d_C[N][N])
   {
     for (int l = 0; l < N; l++)
     {
-      //d_C[i][j] = d_C[i][j] + d_A[j][l] * d_B[l][i];
       d_C[i][j] = d_C[i][j] + d_A[i][l] * d_B[l][j];
     }
   }
@@ -35,6 +34,7 @@ __global__ void setElement(float d_A[N][N], float d_B[N][N], float d_C[N][N])
 
 int main()
 {
+  GpuTimer timer;
 
   int m,n,k;
   m = n = k = N;
@@ -53,21 +53,25 @@ int main()
   cudaMalloc((void**) &d_C, ARRAY_BYTES);
   
   // Kernel invocation with least amount of blocks
-  //int numBlocks;
   int block_x = ceil((float)N / (float)22);
   int block_y = ceil((float)N / (float)22);
 
   dim3 numBlocks(block_x, block_y);
   
   dim3 threadsPerBlock(22, 22);
+
+  timer.Start();
   setElement<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
+  MatMul<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
+  timer.Stop();
+
 
   cudaMemcpy(h_A, d_A, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_B, d_B, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_C, d_C, ARRAY_BYTES, cudaMemcpyDeviceToHost);
   
   
-    fprintf(stdout, "Here is the matrix A:\n\n");
+/*    fprintf(stdout, "Here is the matrix A:\n\n");
   for(i=0;i<m;i++) {
     for(j=0;j<k;j++) {
       fprintf(stdout, "%10.2f",h_A[i][j]);
@@ -82,21 +86,15 @@ int main()
     fprintf(stdout, "\n");
   }
 
-  
-  MatMul<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C);
-
-  cudaMemcpy(h_C, d_C, ARRAY_BYTES, cudaMemcpyDeviceToHost);
-
-
     fprintf(stdout, "Here is the matrix C:\n\n");
   for(i=0;i<m;i++) {
     for(j=0;j<n;j++) {
       fprintf(stdout, "%10.2f",h_C[i][j]);
     }
     fprintf(stdout, "\n");
-  }
+  }*/
 
-
+  printf("Time Elapsed = %g ms\n", timer.Elapsed());
   // Clean up memory
   cudaFreeHost(h_A);
   cudaFreeHost(h_B);
