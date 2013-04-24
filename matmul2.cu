@@ -13,7 +13,7 @@ __global__ void setElement(float d_A[N], float d_B[N], float d_C[N], float k)
   
   if (i < N){
     d_A[i] = i * (float)3.2 + k * (float)2.21;
-    d_B[i] = k * (float)1.3 + i * (float)3.1;
+    d_B[i] = i * (float)1.3 + k * (float)3.1;
     d_C[i] = (float)0;
   }
 }
@@ -77,7 +77,7 @@ int main()
     for (j = 0; j < N; j++)
     {
       h_A[j][i] = temp_A[j];
-      h_B[i][j] = temp_B[j];
+      h_B[j][i] = temp_B[j];
     }
   }
   
