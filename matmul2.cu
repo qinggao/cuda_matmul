@@ -76,8 +76,8 @@ int main()
 
     for (j = 0; j < N; j++)
     {
-      h_A[i][j] = temp_A[j];
-      h_B[j][i] = temp_B[j];
+      h_A[j][i] = temp_A[j];
+      h_B[i][j] = temp_B[j];
     }
   }
   
