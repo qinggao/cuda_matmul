@@ -18,13 +18,13 @@ __global__ void setElement(float d_A[N], float d_B[N], float k)
   }
 }
 
-__global__ void matmul(float d_A[N], float d_B[N], float d_C)
+__global__ void matmul(float d_A[N], float d_B[N], float *d_C)
 {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
 
-  d_C = 0.0;
+  //*d_C = (float)0.0;
   if (i < N)
-    d_C = d_C + d_A[i] * d_B[i];
+    *d_C = *d_C + d_A[i] * d_B[i];
 }
 
 int main()
@@ -119,18 +119,20 @@ int main()
         return -1;
       }
 
+
+      //resets d_C to 0
       temp_C = (float)0;
 
-      /*res=cudaMemcpy(d_C, temp_C, sizeof(float), cudaMemcpyHostToDevice);
+      res=cudaMemcpy(d_C, &temp_C, sizeof(float), cudaMemcpyHostToDevice);
       if(res!=cudaSuccess)
       {
         fprintf(stdout, "cudaMemcpy C error! %d\n", i);
         return -1;
-      }*/
+      }
 
-      matmul<<<numBlocks, 512>>>(d_A, d_B, temp_C);
+      matmul<<<numBlocks, 512>>>(d_A, d_B, d_C);
 
-      res=cudaMemcpy(temp_C, d_C, sizeof(float), cudaMemcpyDeviceToHost);
+      res=cudaMemcpy(&temp_C, d_C, sizeof(float), cudaMemcpyDeviceToHost);
       if(res!=cudaSuccess)
       {
         fprintf(stdout, "cudaMemcpy C error! %d\n", i);
@@ -139,7 +141,6 @@ int main()
 
       h_C[i][j] = temp_C;
 
-      //fprintf("%f\n", (float)temp_C);
     }
     
 
